@@ -1,0 +1,126 @@
+---
+title: "frinal project"
+author: "Chauke Helga"
+date: "2022-12-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###packages
+```{r}
+library(explore)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(rpart)
+library(forecast)
+```
+
+#read data
+#remame column 4
+```{r}
+indoor_pollution <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-04-12/indoor_pollution.csv')
+
+
+```
+##explore the data
+```{r}
+indoor_pollution %>% explore_tbl()
+indoor_pollution %>% describe()
+summary(indoor_pollution[, "Entity"])
+
+```
+##rename col4
+```{r}
+colnames(indoor_pollution)[4] <- "Deaths_pcnt"
+```
+
+#calculate world statistics
+```{r}
+mean(indoor_pollution$Deaths_pcnt)
+median(indoor_pollution$Deaths_pcnt)
+Worldstats <- na.exclude(indoor_pollution$Deaths_pcnt)
+sum(indoor_pollution$Deaths_pcnt)
+var(indoor_pollution$Deaths_pcnt, na.rm=TRUE)
+sd(indoor_pollution$Deaths_pcnt, na.rm = TRUE)
+coefVar <- sd(indoor_pollution$Deaths_pcnt) / mean(indoor_pollution$Deaths_pcnt) * 100
+quantile(indoor_pollution$Deaths_pcnt)
+range(indoor_pollution$Deaths_pcnt)
+IQR(indoor_pollution$Deaths_pcnt)
+```
+#world data histogram and density plot
+```{r}
+# histogram
+ggplot(indoor_pollution, aes(x = Deaths_pcnt)) +
+  geom_histogram(bins = nclass.Sturges(indoor_pollution$Deaths_pcnt))
+
+# density curve
+ggplot(indoor_pollution, aes(x = Deaths_pcnt)) + geom_density()
+
+indoor_pollution%>% select(Entity, Year, Deaths_pcnt ) %>% 
+  explore_all(target = Entity)
+
+ggplot(indoor_pollution, aes(x = Year, y = Deaths_pcnt, color = Entity, group = Entity)) +
+  geom_line() + geom_point() +   theme_test()
+```
+##world total
+```{r}
+Worldtot <- indoor_pollution %>% group_by(Year) %>% summarise(Deaths_pcnt = sum(Deaths_pcnt))
+
+
+
+ggplot(Worldtot, aes(x = Year, y= Deaths_pcnt)) + geom_line()
+ggplot(Worldtot, aes(x = Deaths_pcnt)) + geom_histogram(bins = nclass.Sturges(Worldtot$Deaths_pcnt))
+
+ ggplot(indoor2, aes(x= Year, Deaths_pcnt, color = Entity)) + geom_line()+ theme(legend.position = "none")
+```
+##number of deaths around the world have decreased with time, but which country still experience the highest number of deaths in moden times?
+```{r}
+
+ lastyear <- filter(indoor_pollution, Year ==2019)
+
+sapply(lastyear, max) 
+ 
+ ggplot(lastyear, aes(x= Deaths_pcnt, y= Entity)) + geom_col()
+ 
+ 
+indoor2 <-select(indoor_pollution, -c(Code))
+worlddeath <- spread(indoor2, key = Entity, value = Deaths_pcnt)
+
+sapply(lastyear, min)
+
+```
+
+#compute statistical model for world data
+##is there significant difference between the first year vs the last year of data collection in the world?
+```{r}
+ worlddeathYr <- spread(indoor2, key = Year, value = Deaths_pcnt)
+
+t.test(worlddeathYr$`2019`, worlddeathYr$`1990`, var.equal = F)
+
+#ttest of the last year
+t.test(lastyear$Deaths_pcnt,mu=0)
+
+
+###ANOva
+
+res_aov <- aov(Deaths_pcnt ~ Entity,
+               data = indoor2)
+
+  hist(res_aov$residuals)
+  
+boxplot()
+```
+g(Deaths_pcnt ~ Entity,data = indoor2)
+
+###residual diagnostics
+```{r}
+ hist(res_aov$residuals)
+    
+        checkresiduals(indoor2$Deaths_pcnt)
+        checkresiduals(res_aov$residuals)
+```
+
