@@ -1,0 +1,112 @@
+---
+title: "Cocktail bair"
+author: "Chauke Helga"
+date: "2022-11-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readr)
+library(dplyr)
+```
+
+## 1. Read the data
+```{r}
+url <- "https://raw.githubusercontent.com/nthun/cocktail-balance/master/cocktail_data.tsv"
+ctbar <- readr::read_tsv(url)
+```
+## 2. Transform the data table and clean the ingredient variable!
+```{r}
+fnl<- ctbar %>% mutate(ingredients = str_replace_all(string = ingredients, pattern = "[1234567890,.</()%]",replacement = ""))
+
+fnl2<- fnl %>% mutate(ingredients = str_replace_all(string = ingredients, pattern = "drops", replacement = ""))
+fnl3<- fnl2 %>% mutate(ingredients = str_replace_all(string = ingredients, pattern = "drop", replacement = ""))
+fnl4<- fnl3 %>% mutate(ingredients = str_replace_all(string = ingredients, pattern = "dashes", replacement = ""))
+fnl5<- fnl4 %>% mutate(ingredients = str_replace_all(string = ingredients, pattern = "abvbr", replacement = ""))
+fnl6<- fnl5 %>% mutate(ingredients = str_replace_all(string = ingredients, pattern = "br", replacement = ""))
+fnl7<- fnl6 %>% mutate(ingredients = str_replace_all(string = ingredients, pattern = "abv", replacement = ""))
+fnl8<- fnl7 %>% mutate(ingredients = str_replace_all(string = ingredients, pattern = "oz", replacement = ""))
+fnl9<- fnl8 %>% mutate(ingredients = str_replace_all(string = ingredients, pattern = "dash", replacement = ""))
+fnl0<- fnl9 %>% mutate(ingredients = str_replace_all(string = ingredients, pattern = "bsp", replacement = ""))
+
+
+```
+
+```{r}
+ df1 <- fnl0 %>% tidyr::separate_rows(ingredients, sep = ">")
+df1a<- df1 %>% mutate(ingredients = str_trim(df1$ingredients, "both"))
+
+#trm <- gsub("^\\s+|\\s+$", "", df1$ingredients)
+#df1c<- df1 %>% mutate(ingredients = str_replace_all(string = ingredients, pattern = " ", replacement = ""))
+
+
+
+```
+```{r}
+
+```
+
+## 3. All ingredients in alphabetical order
+```{r}
+sort1 <- with(df1a,  df1a[order(ingredients) , ])
+```
+
+## 4. Number of unique ingredients
+```{r}
+n_distinct(sort1$ingredients)
+
+count <- sort1 %>%group_by(ingredients) %>% summarise(count = n_distinct(ingredients))
+```
+## 5. What are the top 10 ingredients?
+```{r}
+names(which.max(table(df1a$ingredients)))
+
+lvls <- unique(unlist(df1a$ingredients))
+ freq <- sapply(df1a, function(x) table(factor(x, levels = lvls,ordered = TRUE)))
+ print ("Count of variables per column")
+ print (freq)
+ 
+#ingcount <- order((freq$ingredients) , ])
+
+ #freq = lemon juice, simple syrup, sweet vermouth, gin, lime juice, Angostura bitters, saline solution, water, rye, cognac 
+
+```
+## 6. Which cocktail(s) has/have the most ingredients?
+```{r}
+lvls <- unique(unlist(df1a$name))
+namefreq <- sapply(df1a, function(x) table(factor(x, levels = lvls,ordered = TRUE)))
+#mostingredients <-pink lady, clover cubm viex carre, blender margarita, carbonated negroni
+
+table(df1a$name)
+```
+
+
+## 7. How many ingredients appear in only one cocktail (rare ingredient)?
+```{r}
+names(which.min(table(df1a$name)))
+```
+## 8. Which cocktail has an ingredient that is only used in one cocktail?
+```{r}
+d2 <- df1a %>% group_by(ingredients) %>% dplyr::filter(n() == 1) %>%ungroup()
+```
+## 9. What are the cocktails without rare ingredients?
+```{r}
+print("Elements which are repeated")
+which(table(df1a$name)>1)
+```
+## 10. Create a cheat sheet for the bartender!
+```{r}
+mtr <-as_tibble(ctbar$name)
+mtr2 <- as_tibble(count$ingredients)
+mtr3 <- t(mtr2)
+colnames(mtr3) <- mtr3[1,]
+cs <- cbind(mtr,mtr3)
+
+cs[,]=matrix(ncol= ncol(cs), rep("", prod(dim(cs))))
+cs1 <- cbind(mtr,cs)
+cs1a <- cs1[,-2]
+
+```
+
