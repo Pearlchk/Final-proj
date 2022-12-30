@@ -1,11 +1,14 @@
 ---
-title: "frinal project"
+title: "Indoor Air Pollution"
 author: "Chauke Helga"
 date: "2022-12-21"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
-```{r setup, include=FALSE}
+```{r, error=TRUE}
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -114,7 +117,7 @@ res_aov <- aov(Deaths_pcnt ~ Entity,
   
 boxplot()
 ```
-g(Deaths_pcnt ~ Entity,data = indoor2)
+
 
 ###residual diagnostics
 ```{r}
