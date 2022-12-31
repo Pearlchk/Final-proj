@@ -1,0 +1,45 @@
+---
+title: "Untitled"
+author: "Chauke Helga"
+date: "2022-12-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(tidytuesdayR)
+library(forcats)
+library(dplyr)
+```
+
+```{r}
+
+tuesdata <- tidytuesdayR::tt_load('2020-09-22')
+tuesdata <- tidytuesdayR::tt_load(2020, week = 39)
+
+```
+```{r}
+tuesdata %>% head()
+
+exp <- as.tibble(tuesdata$expeditions)
+
+
+exp2 <- exp %>% mutate(peak_name = fct_lump(peak_name)) %>%
+  count(peak_name, sort = TRUE)
+
+expT <- exp2 %>% mutate(peak_name = fct_lump(peak_name, n=15))
+
+expT %>%
+  group_by(peak_name) %>%
+  count() %>%   
+  ggplot(aes(x = n, y = peak_name, color = "season") +
+           geom_col(color="viridis palette") + theme_light()
+
+```
+
+
